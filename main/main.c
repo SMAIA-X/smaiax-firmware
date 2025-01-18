@@ -1,7 +1,15 @@
 #include <stdio.h>
+#include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
+#include "mbus.h"
+#include "crypto.h"
+#include "sdkconfig.h"
+
+#define BYTE_SIZE_UART_DATA 376
+#define BYTE_SIZE_PLAINTEXT_BUFFER 1024
+#define BYTE_SIZE_SMART_METER_KEY 16
 
 #define READ_MBUS_TASK_STACKSIZE 4096 
 #define READ_MBUS_TASK_PRIORITY 3
@@ -21,10 +29,12 @@ static QueueHandle_t gMbusDataQueueHandle = NULL;
 static StaticQueue_t gMbusDataQueueMemory;
 static uint8_t gMbusDataQueueItemMemory[MBUS_DATA_QUEUE_LENGTH * MBUS_DATA_QUEUE_ITEM_SIZE];
 
+uint8_t SMART_METER_KEY[BYTE_SIZE_SMART_METER_KEY];
+
 void readMbusTaskMainFunc(void* pvParameters) { 
 	// TODO: Replace with actual uart reading code
 	ESP_LOGI(UART_TAG, "Start reading from mbus");
-	uint8_t uartData[] = {
+	uint8_t uartData[BYTE_SIZE_UART_DATA] = {
 	0x68, 0xFA, 0xFA, 0x68, 0x53, 0xFF, 0x00, 0x01, 0x67, 0xDB, 0x08, 0x4B, 0x46, 0x4D, 0x10, 0x20, 0x03, 0x1D, 0x00, 0x82, 0x01,
 	0x55, 0x21, 0x00, 0x02, 0x77, 0x99, 0x5E, 0xF9, 0xEE, 0x29, 0x0D, 0xED, 0x5D, 0x9F, 0x1F, 0xBE, 0x87, 0x30, 0x90, 0x46, 0x50, 
 	0xDE, 0x64, 0x7A, 0x44, 0x09, 0xE4, 0x73, 0x5D, 0xD1, 0x05, 0x78, 0x52, 0xC9, 0x21, 0x17, 0x30, 0x29, 0x98, 0x7C, 0x1C, 0xE6, 
@@ -61,19 +71,50 @@ void readMbusTaskMainFunc(void* pvParameters) {
 
 void parseDataTaskMainFunc(void* pvParameters) { 
 	while (1) {
-		uint8_t uartData[376];
+		uint8_t uartData[BYTE_SIZE_UART_DATA];
 		
 		if (xQueueReceive(gMbusDataQueueHandle, uartData, 500 / portTICK_PERIOD_MS) == true) {
-			for (size_t i = 0; i < 376; i++) {
-				ESP_LOGI(UART_TAG, "%02x", uartData[i]);
-			}
+		    frame_t frame;
+    		parseBufferToFrame(&frame, uartData);
+    		
+    		uint8_t plaintext[BYTE_SIZE_PLAINTEXT_BUFFER] = {0};
+    		size_t plaintextLen = 0;
+    		
+    		const size_t resultCode = decrypt_aes_gcm(SMART_METER_KEY, BYTE_SIZE_KEY, frame.iv, BYTE_SIZE_IV, frame.payload,
+                                              BYTE_SIZE_PAYLOAD, plaintext, BYTE_SIZE_PLAINTEXT_BUFFER, &plaintextLen);
+                                              
+            if (resultCode != 0) {
+				ESP_LOGE(PARSE_DATA_TAG, "Decryption failed!");
+				return;
+    		}
+			
+			for (int i = 0; i < plaintextLen; i++) {
+				ESP_LOGI(PARSE_DATA_TAG, "%02x", plaintext[i]);;
+			}	
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(5000));
 	}
 }
 
+void parseSmartMeterKey(const char* keyString, uint8_t* keyArray) {
+    size_t size = 0;
+
+    char* keyCopy = strdup(keyString);
+    char* token = strtok(keyCopy, ",");
+    
+    while (token != NULL && size < BYTE_SIZE_SMART_METER_KEY) {
+        keyArray[size++] = (uint8_t)strtol(token, NULL, 0);
+        token = strtok(NULL, ",");
+    }
+    
+    free(keyCopy);
+}
+
 void app_main(void) {
+	const char* smartMeterKeyString = CONFIG_SMART_METER_KEY;
+	parseSmartMeterKey(smartMeterKeyString, SMART_METER_KEY);
+	
 	gMbusDataQueueHandle = xQueueCreateStatic(MBUS_DATA_QUEUE_LENGTH, MBUS_DATA_QUEUE_ITEM_SIZE, gMbusDataQueueItemMemory, &gMbusDataQueueMemory);
 	assert(gMbusDataQueueHandle != NULL);
 	

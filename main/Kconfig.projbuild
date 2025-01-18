@@ -1,0 +1,8 @@
+menu "SMAIAX Firmware Configuration"
+
+config SMART_METER_KEY
+    string "Smart Meter Key"
+    default "0x68,0xFA,0xFA,0x68,0x53,0xFF,0x00,0x01,0x67,0xDB"
+    help
+	Enter the smart meter key as a comma-separated list of hexadecimal values.
+endmenu
