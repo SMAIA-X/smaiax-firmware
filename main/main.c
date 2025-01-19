@@ -8,6 +8,7 @@
 #include "crypto.h"
 #include "sdkconfig.h"
 #include "wifi.h"
+#include "obis.h"
 
 #define BYTE_SIZE_UART_DATA 376
 #define BYTE_SIZE_PLAINTEXT_BUFFER 1024
@@ -72,9 +73,9 @@ void readMbusTaskMainFunc(void* pvParameters) {
 }
 
 void parseDataTaskMainFunc(void* pvParameters) { 
-	while (1) {
-		uint8_t uartData[BYTE_SIZE_UART_DATA];
-		
+	uint8_t uartData[BYTE_SIZE_UART_DATA];
+	
+	while (1) {	
 		if (xQueueReceive(gMbusDataQueueHandle, uartData, 500 / portTICK_PERIOD_MS) == true) {
 		    frame_t frame;
     		parseBufferToFrame(&frame, uartData);
@@ -89,6 +90,27 @@ void parseDataTaskMainFunc(void* pvParameters) {
 				ESP_LOGE(PARSE_DATA_TAG, "Decryption failed!");
 				return;
     		}
+    		
+    		measurement_t measurement;
+    		parse_obis_codes(&measurement, plaintext, plaintextLen);
+    		
+	 		ESP_LOGI(PARSE_DATA_TAG, "Measurement Data:");
+		    ESP_LOGI(PARSE_DATA_TAG, "-----------------");
+		    ESP_LOGI(PARSE_DATA_TAG, "Timestamp: %u.%u.%u %u:%u:%u", measurement.day, measurement.month, measurement.year, measurement.hour, measurement.minute, measurement.second);
+			ESP_LOGI(PARSE_DATA_TAG, "ID: %lu", (unsigned long)measurement.id);
+		    ESP_LOGI(PARSE_DATA_TAG, "Voltage L1: %.2f", measurement.voltage_l1);
+		    ESP_LOGI(PARSE_DATA_TAG, "Voltage L2: %.2f", measurement.voltage_l2);
+		    ESP_LOGI(PARSE_DATA_TAG, "Voltage L3: %.2f", measurement.voltage_l3);
+		    ESP_LOGI(PARSE_DATA_TAG, "Current L1: %.2f", measurement.current_l1);
+		    ESP_LOGI(PARSE_DATA_TAG, "Current L2: %.2f", measurement.current_l2);
+		    ESP_LOGI(PARSE_DATA_TAG, "Current L3: %.2f", measurement.current_l3);
+		    ESP_LOGI(PARSE_DATA_TAG, "Active Power Plus: %.2f", measurement.active_power_plus);
+		    ESP_LOGI(PARSE_DATA_TAG, "Active Power Minus: %.2f", measurement.active_power_minus);
+		    ESP_LOGI(PARSE_DATA_TAG, "Reactive Power Plus: %.2f", measurement.reactive_power_plus);
+		    ESP_LOGI(PARSE_DATA_TAG, "Reactive Power Minus: %.2f", measurement.reactive_power_minus);
+		    ESP_LOGI(PARSE_DATA_TAG, "Active Energy Plus: %.2f", measurement.active_energy_plus);
+		    ESP_LOGI(PARSE_DATA_TAG, "Active Energy Minus: %.2f", measurement.active_energy_minus);
+		    ESP_LOGI(PARSE_DATA_TAG, "-----------------");
 		}
 
 		vTaskDelay(pdMS_TO_TICKS(5000));
