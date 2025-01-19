@@ -158,13 +158,14 @@ void initWifi() {
 			.scan_method = WIFI_FAST_SCAN,
 			.sort_method = WIFI_CONNECT_AP_BY_SIGNAL,
 			.threshold.rssi = -127,
-			.threshold.authmode = WIFI_AUTH_OPEN,
+			.threshold.authmode = WIFI_AUTH_WPA2_PSK,
 		},
 	};
 
 	 ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 	 ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
 	 ESP_ERROR_CHECK(esp_wifi_start());
+	 esp_wifi_connect();
 }
 
 void app_main(void) {
