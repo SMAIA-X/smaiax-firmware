@@ -10,12 +10,30 @@ config WIFI_SSID
     string "WiFi SSID"
     default "myssid"
     help
-		SSID (network name) for the example to connect to.
+		SSID (network name) to connect to.
 
 config WIFI_PASSWORD
     string "WiFi Password"
     default "mypassword"
     help
-		WiFi password (WPA or WPA2) for the example to use.
+		WiFi password (WPA or WPA2) to use.
+
+config MQTT_BROKER_URL
+	string "MQTT Broker URL"
+	default "mqtt://mqtt.eclipseprojects.io"
+	help
+		The MQTT Broker URL to connect to.
+		
+config MQTT_USERNAME
+	string "MQTT Username"
+	default "user"
+	help
+		The Username for connecting to the MQTT Broker.
+		
+config MQTT_PASSWORD
+	string "MQTT Password"
+	default "password"
+	help
+		The Password for connecting to the MQTT Broker.
 
 endmenu
