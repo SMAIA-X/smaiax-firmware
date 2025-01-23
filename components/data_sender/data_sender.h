@@ -5,5 +5,7 @@
  *      Author: michael
  */
 
+#include "obis.h"
+
 void initMqttClient();
-void sendData();
+void sendData(measurement_t* measurement);

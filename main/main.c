@@ -10,6 +10,7 @@
 #include "wifi.h"
 #include "obis.h"
 #include "data_sender.h"
+#include "uart_handler.h"
 
 #define BYTE_SIZE_UART_DATA 376
 #define BYTE_SIZE_PLAINTEXT_BUFFER 1024
@@ -125,7 +126,7 @@ void senderTaskMainFunc(void* pvParameters) {
 	
 	while (1) {
 		if (xQueueReceive(gSenderQueueHandle, &measurement, 500 / portTICK_PERIOD_MS) == true) {
-			sendData();
+			sendData(&measurement);
 		}
 	}
 }

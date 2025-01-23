@@ -71,8 +71,49 @@ void initMqttClient() {
     esp_mqtt_client_start(client);
 }
 
-void sendData() {
-	int msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "{\n\"data\": \"data\"\n}", 0, 0, 0);
+void sendData(measurement_t* measurement) {
+	char json[512];
+ 	char timestamp[30];
+    snprintf(timestamp, sizeof(timestamp), "%04d-%02d-%02dT%02d:%02d:%02d",
+             measurement->year, measurement->month, measurement->day,
+             measurement->hour, measurement->minute, measurement->second);
+
+	int len = snprintf(json, sizeof(json),
+        "{"
+        "\"timestamp\":\"%s\","
+        "\"voltage_l1\":%.2f,"
+        "\"voltage_l2\":%.2f,"
+        "\"voltage_l3\":%.2f,"
+        "\"current_l1\":%.2f,"
+        "\"current_l2\":%.2f,"
+        "\"current_l3\":%.2f,"
+        "\"active_power_plus\":%.2f,"
+        "\"active_power_minus\":%.2f,"
+        "\"reactive_power_plus\":%.2f,"
+        "\"reactive_power_minus\":%.2f,"
+        "\"active_energy_plus\":%.2f,"
+        "\"active_energy_minus\":%.2f"
+        "}",
+        timestamp,
+        measurement->voltage_phase_1,
+        measurement->voltage_phase_2,
+        measurement->voltage_phase_3,
+        measurement->current_phase_1,
+        measurement->current_phase_2,
+        measurement->current_phase_3,
+        measurement->positive_active_power,
+        measurement->negative_active_power,
+        measurement->reactive_power_plus,
+        measurement->reactive_power_minus,
+        measurement->positive_active_energy_total,
+        measurement->negative_active_energy_total);
+        
+ 	if (len < 0 || len >= sizeof(json)) {
+        ESP_LOGE(SENDER_TAG, "JSON string is too large for buffer");
+        return;
+    }
+	
+	int msg_id = esp_mqtt_client_publish(client, "/topic/qos0", json, 0, 0, 0);
 			
 	if (msg_id != 0) {
 		ESP_LOGE(SENDER_TAG, "Publish failed, msg_id=%d", msg_id);

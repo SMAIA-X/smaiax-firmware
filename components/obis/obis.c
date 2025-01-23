@@ -78,7 +78,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         int8_t scale_factor = *(start+5);
 
         scale_voltage = scale_factor;
-        measurement->voltage_l1 = voltage_l1 * powf(10, scale_voltage);
+        measurement->voltage_phase_1 = voltage_l1 * powf(10, scale_voltage);
     }
 
     uint8_t obis_voltage_l2[6] = {0x01, 0x00, 0x34, 0x07, 0x00, 0xff};
@@ -87,7 +87,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         start+=obis_size+1;
         uint16_t voltage_l2 = *(start)<< 8 | *(start+1);
 
-        measurement->voltage_l2 = voltage_l2 * powf(10, scale_voltage);
+        measurement->voltage_phase_2 = voltage_l2 * powf(10, scale_voltage);
     }
 
     uint8_t obis_voltage_l3[6] = {0x01, 0x00, 0x48, 0x07, 0x00, 0xff};
@@ -96,7 +96,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         start+=obis_size+1;
         uint16_t voltage_l3 = *(start)<< 8 | *(start+1);
 
-        measurement->voltage_l3 = voltage_l3 * powf(10, scale_voltage);
+        measurement->voltage_phase_3 = voltage_l3 * powf(10, scale_voltage);
     }
 
     uint8_t obis_current_l1[6] = {0x01, 0x00, 0x1F, 0x07, 0x00, 0xff};
@@ -107,7 +107,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         int8_t scale_factor = *(start+5);
 
         scale_current = scale_factor;
-        measurement->current_l1 = current_l1_buf * powf(10, scale_current);
+        measurement->current_phase_1 = current_l1_buf * powf(10, scale_current);
     }
 
     uint8_t obis_current_l2[6] = {0x01, 0x00, 0x33, 0x07, 0x00, 0xff};
@@ -116,7 +116,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         start+=obis_size+1;
         uint16_t current_l2_buf = *(start)<< 8 | *(start+1);
 
-        measurement->current_l2 = current_l2_buf * powf(10, scale_current);
+        measurement->current_phase_2 = current_l2_buf * powf(10, scale_current);
     }
 
     uint8_t obis_current_l3[6] = {0x01, 0x00, 0x47, 0x07, 0x00, 0xff};
@@ -125,7 +125,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         start+=obis_size+1;
         uint16_t current_l3_buf = *(start)<< 8 | *(start+1);
 
-        measurement->current_l3 = current_l3_buf * powf(10, scale_current);
+        measurement->current_phase_3 = current_l3_buf * powf(10, scale_current);
     }
 
     uint8_t obis_active_power_plus[6] = {0x01, 0x00, 0x01, 0x07, 0x00, 0xff};
@@ -136,7 +136,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         int8_t scale_factor = *(start+7);
 
 		scale_power = scale_factor;
-        measurement->active_power_plus = active_power_plus_buf * powf(10, scale_power);
+        measurement->positive_active_power = active_power_plus_buf * powf(10, scale_power);
     }
 
     uint8_t obis_active_power_minus[6] = {0x01, 0x00, 0x02, 0x07, 0x00, 0xff};
@@ -145,7 +145,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         start+=obis_size+1;
         uint32_t active_power_minus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
 
-        measurement->active_power_minus = active_power_minus_buf * powf(10, scale_power);
+        measurement->negative_active_power = active_power_minus_buf * powf(10, scale_power);
     }
 
     uint8_t obis_active_energy_plus[6] = {0x01, 0x00, 0x01, 0x08, 0x00, 0xff};
@@ -156,7 +156,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         int8_t scale_factor = *(start+7);
 
 		scale_energy = scale_factor;
-        measurement->active_energy_plus = active_energy_plus_buf * powf(10, scale_energy);
+        measurement->positive_active_energy_total = active_energy_plus_buf * powf(10, scale_energy);
     }
 
     uint8_t obis_active_energy_minus[6] = {0x01, 0x00, 0x02, 0x08, 0x00, 0xff};
@@ -165,7 +165,7 @@ void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_le
         start+=obis_size+1;
         uint32_t active_energy_minus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
 
-        measurement->active_energy_minus = active_energy_minus_buf * powf(10, scale_energy);
+        measurement->negative_active_energy_total = active_energy_minus_buf * powf(10, scale_energy);
     }
 
     uint8_t obis_reactive_power_plus[6] = {0x01, 0x00, 0x01, 0x07, 0x00, 0xff};
