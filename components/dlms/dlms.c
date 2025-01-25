@@ -1,5 +1,5 @@
 /*
- * obis.c
+ * dlms.c
  *
  *  Created on: 19.01.2025
  *      Author: michael
@@ -9,11 +9,11 @@
  */
 
 
-#include "obis.h"
+#include "dlms.h"
 #include <math.h>
 
-void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_len){
-   uint32_t offset = 6; // Skip the first 6 bytes of the data and start with the timestamp
+void parse_dlms_payload(measurement_t* measurement, uint8_t* data, size_t data_len) {
+   	uint32_t offset = 6; // Skip the first 6 bytes of the data and start with the timestamp
     uint8_t timestamp[BYTE_SIZE_TIMESTAMP];
 
     for (uint8_t i = 0; i < BYTE_SIZE_TIMESTAMP; i++) {

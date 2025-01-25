@@ -1,12 +1,12 @@
 /*
- * obis.h
+ * dlms.h
  *
  *  Created on: 19.01.2025
  *      Author: michael
  */
 
-#ifndef COMPONENTS_OBIS_OBIS_H_
-#define COMPONENTS_OBIS_OBIS_H_
+#ifndef COMPONENTS_DLMS_DLMS_H_
+#define COMPONENTS_DLMS_DLMS_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -34,6 +34,6 @@ typedef struct {
     double negative_reactive_energy_total;
 } measurement_t;
 
-void parse_obis_codes(measurement_t* measurement, uint8_t* data, size_t data_len);
+void parse_dlms_payload(measurement_t* measurement, uint8_t* data, size_t data_len);
 
-#endif /* COMPONENTS_OBIS_OBIS_H_ */
+#endif /* COMPONENTS_DLMS_DLMS_H_ */

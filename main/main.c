@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <nvs_flash.h>
+
+#include "dlms.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -8,7 +10,6 @@
 #include "crypto.h"
 #include "sdkconfig.h"
 #include "wifi.h"
-#include "obis.h"
 #include "data_sender.h"
 #include "uart_handler.h"
 
@@ -107,7 +108,7 @@ void parseDataTaskMainFunc(void* pvParameters) {
     		}
     		
     		measurement_t measurement;
-    		parse_obis_codes(&measurement, plaintext, plaintextLen);
+    		parse_dlms_payload(&measurement, plaintext, plaintextLen);
     		
     		bool sent = xQueueSend(gSenderQueueHandle, &measurement, 0);
 	        if (sent) {
