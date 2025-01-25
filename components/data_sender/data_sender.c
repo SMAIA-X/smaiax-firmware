@@ -81,18 +81,18 @@ void sendData(measurement_t* measurement) {
 	int len = snprintf(json, sizeof(json),
         "{"
         "\"timestamp\":\"%s\","
-        "\"voltage_l1\":%.2f,"
-        "\"voltage_l2\":%.2f,"
-        "\"voltage_l3\":%.2f,"
-        "\"current_l1\":%.2f,"
-        "\"current_l2\":%.2f,"
-        "\"current_l3\":%.2f,"
-        "\"active_power_plus\":%.2f,"
-        "\"active_power_minus\":%.2f,"
-        "\"reactive_power_plus\":%.2f,"
-        "\"reactive_power_minus\":%.2f,"
-        "\"active_energy_plus\":%.2f,"
-        "\"active_energy_minus\":%.2f"
+        "\"voltage_phase_1\":%.2f,"
+        "\"voltage_phase_2\":%.2f,"
+        "\"voltage_phase_3\":%.2f,"
+        "\"current_phase_1\":%.2f,"
+        "\"current_phase_2\":%.2f,"
+        "\"current_phase_3\":%.2f,"
+        "\"positive_active_power\":%.2f,"
+        "\"negative_active_power\":%.2f,"
+        "\"positive_reactive_energy_total\":%.2f,"
+        "\"negative_reactive_energy_total\":%.2f,"
+        "\"positive_active_energy_total\":%.2f,"
+        "\"negative_active_energy_total\":%.2f"
         "}",
         timestamp,
         measurement->voltage_phase_1,
@@ -103,8 +103,8 @@ void sendData(measurement_t* measurement) {
         measurement->current_phase_3,
         measurement->positive_active_power,
         measurement->negative_active_power,
-        measurement->reactive_power_plus,
-        measurement->reactive_power_minus,
+        measurement->positive_reactive_energy_total,
+        measurement->negative_reactive_energy_total,
         measurement->positive_active_energy_total,
         measurement->negative_active_energy_total);
         

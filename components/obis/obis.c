@@ -10,179 +10,81 @@
 
 
 #include "obis.h"
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
 
-uint8_t* find_in_mem(uint8_t* haystack, uint8_t* needle, size_t haystack_size, size_t needle_size) {
-    for (size_t i = 0; i < haystack_size - needle_size; i++) {
-        size_t sum = 0;
-        for (size_t j = 0; j < needle_size; j++) {
-            sum += *(haystack + i + j) == *(needle + j);
-        }
-        if (sum == needle_size) {
-            return haystack + i;
-        }
-    }
-
-    return NULL;
-}
-
-uint32_t get_hash(char* s, size_t n) {
-    int64_t p = 31, m = 1e9 + 7;
-    int64_t hash = 0;
-    int64_t p_pow = 1;
-    for(int i = 0; i < n; i++) {
-        hash = (hash + s[i] * p_pow) % m;
-        p_pow = (p_pow * p) % m;
-    }
-    return hash;
-}
-
 void parse_obis_codes(measurement_t* measurement, uint8_t * data, size_t data_len){
-    uint8_t obis_size = 6;
-    int8_t scale_voltage = 0;
-    int8_t scale_current = 0;
-	int8_t scale_power = 0;
-	int8_t scale_energy = 0;
+   uint32_t offset = 6; // Skip the first 6 bytes of the data and start with the timestamp
+    uint8_t timestamp[BYTE_SIZE_TIMESTAMP];
 
-    uint8_t obis_timestamp[6] = {0x00, 0x00, 0x01, 0x00, 0x00, 0xff};
-    uint8_t * start = find_in_mem(data, obis_timestamp, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+2;
-        measurement->year = *(start) << 8 | *(start+1);
-        measurement->month = *(start+2);
-        measurement->day = *(start+3);
-        measurement->hour = *(start+5);
-        measurement->minute = *(start+6);
-        measurement->second = *(start+7);
+    for (uint8_t i = 0; i < BYTE_SIZE_TIMESTAMP; i++) {
+        timestamp[i] = data[offset];
+        offset++;
     }
 
-    uint8_t obis_meternumber[6] = {0x00, 0x00, 0x60, 0x01, 0x00, 0xff};
-    start = find_in_mem(data, obis_meternumber, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint8_t meternumber_length = *(start);
-        char* meternumber = malloc(sizeof(char) * meternumber_length);
-        memcpy(meternumber, start+1, meternumber_length);
+    measurement->year = (timestamp[0] << 8) | timestamp[1];
+    measurement->month = timestamp[2];
+    measurement->day = timestamp[3];
+    measurement->hour = timestamp[5];
+    measurement->minute = timestamp[6];
+    measurement->second = timestamp[7];
 
-        measurement->id = get_hash(meternumber, meternumber_length);
-        free(meternumber);
-    }
+    offset = 107;
+    const uint16_t voltage_phase_1 = (data[offset] << 8) | data[offset + 1];
+    const int8_t voltage_phase_1_scale = data[offset + 5];
+    measurement->voltage_phase_1 = voltage_phase_1 * pow(10, voltage_phase_1_scale);
+    offset = offset + 19;
 
-    uint8_t obis_voltage_l1[6] = {0x01, 0x00, 0x20, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_voltage_l1, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t voltage_l1 = *(start)<< 8 | *(start+1);
-        int8_t scale_factor = *(start+5);
+    const uint16_t voltage_phase_2 = (data[offset] << 8) | data[offset + 1];
+    const int8_t voltage_phase_2_scale = data[offset + 5];
+    measurement->voltage_phase_2 = voltage_phase_2 * pow(10, voltage_phase_2_scale);
+    offset = offset + 19;
 
-        scale_voltage = scale_factor;
-        measurement->voltage_phase_1 = voltage_l1 * powf(10, scale_voltage);
-    }
+    const uint16_t voltage_phase_3 = (data[offset] << 8) | data[offset + 1];
+    const int8_t voltage_phase_3_scale = data[offset + 5];
+    measurement->voltage_phase_3 = voltage_phase_3 * pow(10, voltage_phase_3_scale);
+    offset = offset + 19;
 
-    uint8_t obis_voltage_l2[6] = {0x01, 0x00, 0x34, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_voltage_l2, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t voltage_l2 = *(start)<< 8 | *(start+1);
+    const uint16_t current_phase_1 = (data[offset] << 8) | data[offset + 1];
+    const int8_t current_phase_1_scale = data[offset + 5];
+    measurement->current_phase_1 = current_phase_1 * pow(10, current_phase_1_scale);
+    offset = offset + 19;
 
-        measurement->voltage_phase_2 = voltage_l2 * powf(10, scale_voltage);
-    }
+    const uint16_t current_phase_2 = (data[offset] << 8) | data[offset + 1];
+    const int8_t current_phase_2_scale = data[offset + 5];
+    measurement->current_phase_2 = current_phase_2 * pow(10, current_phase_2_scale);
+    offset = offset + 19;
 
-    uint8_t obis_voltage_l3[6] = {0x01, 0x00, 0x48, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_voltage_l3, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t voltage_l3 = *(start)<< 8 | *(start+1);
+    const uint16_t current_phase_3 = (data[offset] << 8) | data[offset + 1];
+    const int8_t current_phase_3_scale = data[offset + 5];
+    measurement->current_phase_3 = current_phase_3 * pow(10, current_phase_3_scale);
+    offset = offset + 19;
 
-        measurement->voltage_phase_3 = voltage_l3 * powf(10, scale_voltage);
-    }
+    const uint32_t positive_active_power = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+    const int8_t positive_active_power_scale = data[offset + 7];
+    measurement->positive_active_power = positive_active_power * pow(10, positive_active_power_scale);
+    offset = offset + 21;
 
-    uint8_t obis_current_l1[6] = {0x01, 0x00, 0x1F, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_current_l1, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t current_l1_buf = *(start)<< 8 | *(start+1);
-        int8_t scale_factor = *(start+5);
+    const uint32_t negative_active_power = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+    const int8_t negative_active_power_scale = data[offset + 7];
+    measurement->negative_active_power = negative_active_power * pow(10, negative_active_power_scale);
+    offset = offset + 21;
 
-        scale_current = scale_factor;
-        measurement->current_phase_1 = current_l1_buf * powf(10, scale_current);
-    }
+    const uint32_t positive_active_energy_total = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+    const int8_t positive_active_energy_total_scale = data[offset + 7];
+    measurement->positive_active_energy_total = positive_active_energy_total * pow(10, positive_active_energy_total_scale);
+    offset = offset + 21;
 
-    uint8_t obis_current_l2[6] = {0x01, 0x00, 0x33, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_current_l2, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t current_l2_buf = *(start)<< 8 | *(start+1);
+    const uint32_t negative_active_energy_total = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+    const int8_t negative_active_energy_total_scale = data[offset + 7];
+    measurement->negative_active_energy_total = negative_active_energy_total * pow(10, negative_active_energy_total_scale);
+    offset = offset + 21;
 
-        measurement->current_phase_2 = current_l2_buf * powf(10, scale_current);
-    }
+    const uint32_t positive_reactive_energy_total = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+    const int8_t positive_reactive_energy_total_scale = data[offset + 7];
+    measurement->positive_reactive_energy_total = positive_reactive_energy_total * pow(10, positive_reactive_energy_total_scale);
+    offset = offset + 21;
 
-    uint8_t obis_current_l3[6] = {0x01, 0x00, 0x47, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_current_l3, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t current_l3_buf = *(start)<< 8 | *(start+1);
-
-        measurement->current_phase_3 = current_l3_buf * powf(10, scale_current);
-    }
-
-    uint8_t obis_active_power_plus[6] = {0x01, 0x00, 0x01, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_active_power_plus, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint32_t active_power_plus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
-        int8_t scale_factor = *(start+7);
-
-		scale_power = scale_factor;
-        measurement->positive_active_power = active_power_plus_buf * powf(10, scale_power);
-    }
-
-    uint8_t obis_active_power_minus[6] = {0x01, 0x00, 0x02, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_active_power_minus, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint32_t active_power_minus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
-
-        measurement->negative_active_power = active_power_minus_buf * powf(10, scale_power);
-    }
-
-    uint8_t obis_active_energy_plus[6] = {0x01, 0x00, 0x01, 0x08, 0x00, 0xff};
-    start = find_in_mem(data, obis_active_energy_plus, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint32_t active_energy_plus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
-        int8_t scale_factor = *(start+7);
-
-		scale_energy = scale_factor;
-        measurement->positive_active_energy_total = active_energy_plus_buf * powf(10, scale_energy);
-    }
-
-    uint8_t obis_active_energy_minus[6] = {0x01, 0x00, 0x02, 0x08, 0x00, 0xff};
-    start = find_in_mem(data, obis_active_energy_minus, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint32_t active_energy_minus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
-
-        measurement->negative_active_energy_total = active_energy_minus_buf * powf(10, scale_energy);
-    }
-
-    uint8_t obis_reactive_power_plus[6] = {0x01, 0x00, 0x01, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_reactive_power_plus, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t reactive_power_plus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
-
-        measurement->reactive_power_plus = reactive_power_plus_buf * powf(10, scale_power);
-    }
-
-    uint8_t obis_reactive_power_minus[6] = {0x01, 0x00, 0x02, 0x07, 0x00, 0xff};
-    start = find_in_mem(data, obis_reactive_power_minus, data_len, obis_size);
-    if(start!=NULL){
-        start+=obis_size+1;
-        uint16_t reactive_power_minus_buf = *(start)<< 24 | *(start+1)<<16 | *(start+2)<< 8 | *(start+3);
-
-        measurement->reactive_power_minus = reactive_power_minus_buf * powf(10, scale_power);
-    }
+	const uint32_t negative_reactive_energy_total = (data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3];
+    const int8_t negative_reactive_energy_total_scale = data[offset + 7];
+    measurement->negative_reactive_energy_total = negative_reactive_energy_total * pow(10, negative_reactive_energy_total_scale);
 }

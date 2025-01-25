@@ -11,26 +11,27 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define BYTE_SIZE_TIMESTAMP 12
+
 typedef struct {
-    uint16_t year; 
-    uint8_t month; 
-    uint8_t day; 
-    uint8_t hour; 
-    uint8_t minute; 
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
     uint8_t second;
-    uint32_t id;
-    float voltage_phase_1;
-    float voltage_phase_2;
-    float voltage_phase_3;
-    float current_phase_1;
-    float current_phase_2;
-    float current_phase_3;
-    float positive_active_power;
-    float negative_active_power;
-    float reactive_power_plus;
-    float reactive_power_minus;
-    float positive_active_energy_total;
-    float negative_active_energy_total;
+    double voltage_phase_1;
+    double voltage_phase_2;
+    double voltage_phase_3;
+    double current_phase_1;
+    double current_phase_2;
+    double current_phase_3;
+    double positive_active_power;
+    double negative_active_power;
+    double positive_active_energy_total;
+    double negative_active_energy_total;
+    double positive_reactive_energy_total;
+    double negative_reactive_energy_total;
 } measurement_t;
 
 void parse_obis_codes(measurement_t* measurement, uint8_t* data, size_t data_len);
