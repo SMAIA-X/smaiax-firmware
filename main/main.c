@@ -13,6 +13,8 @@
 #include "uart_handler.h"
 #include "utils.h"
 
+#define BYTE_SIZE_KEY 16
+
 #define BYTE_SIZE_PLAINTEXT_BUFFER 1024
 #define BYTE_SIZE_SMART_METER_KEY 16
 

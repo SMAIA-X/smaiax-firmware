@@ -12,6 +12,7 @@
 
 #define SENDER_TAG "SENDER"
 #define BYTE_SIZE_JSON 512
+#define BYTE_SIZE_TOPIC 128
 
 esp_mqtt_client_handle_t client;
 
@@ -81,6 +82,7 @@ int format_measurement_as_json(const measurement_t* measurement, char* json, siz
 
     int len = snprintf(json, json_size,
         "{"
+        "\"smart_meter_id\":\"%s\","
         "\"timestamp\":\"%s\","
         "\"voltage_phase_1\":%.2f,"
         "\"voltage_phase_2\":%.2f,"
@@ -95,6 +97,7 @@ int format_measurement_as_json(const measurement_t* measurement, char* json, siz
         "\"positive_active_energy_total\":%.2f,"
         "\"negative_active_energy_total\":%.2f"
         "}",
+        CONFIG_SMART_METER_ID,
         timestamp,
         measurement->voltage_phase_1,
         measurement->voltage_phase_2,
@@ -118,14 +121,17 @@ int format_measurement_as_json(const measurement_t* measurement, char* json, siz
 
 void send_data(measurement_t* measurement) {
     char json[BYTE_SIZE_JSON];
+    char topic[BYTE_SIZE_TOPIC];
 
     int json_len = format_measurement_as_json(measurement, json, sizeof(json));
     if (json_len < 0) {
         ESP_LOGE(SENDER_TAG, "Failed to format JSON string");
         return;
     }
+    
+    snprintf(topic, BYTE_SIZE_TOPIC, "smartmeter/%s", CONFIG_SMART_METER_ID);
 
-    int msg_id = esp_mqtt_client_publish(client, CONFIG_MQTT_TOPIC, json, 0, 0, 0);
+    int msg_id = esp_mqtt_client_publish(client, topic, json, 0, 0, 0);
     if (msg_id != 0) {
         ESP_LOGE(SENDER_TAG, "Publish failed, msg_id=%d", msg_id);
     } else {

@@ -11,8 +11,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define BYTE_SIZE_KEY 16
-
 /**
  * Decrypts data using AES-GCM.
  *

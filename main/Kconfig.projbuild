@@ -1,5 +1,11 @@
 menu "SMAIAX Firmware Configuration"
 
+config SMART_METER_ID
+	string "Smart Meter Id"
+	default "69d784b5-e709-4f2a-906c-217cd7d29a3f"
+	help
+		The id of the smart meter that is used in the SMAIAX Backend
+
 config SMART_METER_KEY
     string "Smart Meter Key"
     default "0x68,0xFA,0xFA,0x68,0x53,0xFF,0x00,0x01,0x67,0xDB,0x00,0x00,0x00,0x00,0x00,0x00"
@@ -35,11 +41,5 @@ config MQTT_PASSWORD
 	default "password"
 	help
 		The Password for connecting to the MQTT Broker.
-		
-config MQTT_TOPIC
-	string "MQTT Topic"
-	default "/default"
-	help
-		The Topic where the MQTT messages are sent to.
 
 endmenu
