@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <nvs_flash.h>
-
 #include "dlms.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -12,8 +11,8 @@
 #include "wifi.h"
 #include "data_sender.h"
 #include "uart_handler.h"
+#include "utils.h"
 
-#define BYTE_SIZE_UART_DATA 376
 #define BYTE_SIZE_PLAINTEXT_BUFFER 1024
 #define BYTE_SIZE_SMART_METER_KEY 16
 
@@ -69,7 +68,7 @@ void read_mbus_task_main_func(void* pvParameters) {
 }
 
 void parse_data_task_main_func(void* pvParameters) { 
-	uint8_t uart_data[BYTE_SIZE_UART_DATA];
+	uint8_t uart_data[BUFFER_SIZE];
 	
 	while (1) {	
 		if (xQueueReceive(g_mbus_data_queue_handle, uart_data, pdMS_TO_TICKS(5000)) == true) {
@@ -110,30 +109,15 @@ void sender_task_main_func(void* pvParameters) {
 	}
 }
 
-void parse_smart_meter_key(const char* key_string, uint8_t* key_array) {
-    size_t size = 0;
-
-    char* key_copy = strdup(key_string);
-    char* token = strtok(key_copy, ",");
-    
-    while (token != NULL && size < BYTE_SIZE_SMART_METER_KEY) {
-        key_array[size++] = (uint8_t)strtol(token, NULL, 0);
-        token = strtok(NULL, ",");
-    }
-    
-    free(key_copy);
-}
-
 void app_main(void) {
 	init_nvs();
 	init_wifi();
 	vTaskDelay(pdMS_TO_TICKS(5000));
 	init_mqtt_client();
-	vTaskDelay(pdMS_TO_TICKS(5000));
 	init_uart();
 	
 	const char* smart_meter_key_string = CONFIG_SMART_METER_KEY;
-	parse_smart_meter_key(smart_meter_key_string, SMART_METER_KEY);
+	parse_smart_meter_key(smart_meter_key_string, SMART_METER_KEY, BYTE_SIZE_SMART_METER_KEY);
 	
 	g_mbus_data_queue_handle = xQueueCreateStatic(MBUS_DATA_QUEUE_LENGTH, MBUS_DATA_QUEUE_ITEM_SIZE, g_mbus_data_queue_item_memory, &g_mbus_data_queue_memory);
 	assert(g_mbus_data_queue_handle != NULL);
