@@ -8,8 +8,10 @@
 #include "data_sender.h"
 #include "mqtt_client.h"
 #include "esp_log.h"
+#include "sdkconfig.h"
 
 #define SENDER_TAG "SENDER"
+#define BYTE_SIZE_JSON 512
 
 esp_mqtt_client_handle_t client;
 
@@ -71,14 +73,13 @@ void init_mqtt_client() {
     esp_mqtt_client_start(client);
 }
 
-void send_data(measurement_t* measurement) {
-	char json[512];
- 	char timestamp[30];
+int format_measurement_as_json(const measurement_t* measurement, char* json, size_t json_size) {
+    char timestamp[30];
     snprintf(timestamp, sizeof(timestamp), "%04d-%02d-%02dT%02d:%02d:%02d",
              measurement->year, measurement->month, measurement->day,
              measurement->hour, measurement->minute, measurement->second);
 
-	int len = snprintf(json, sizeof(json),
+    int len = snprintf(json, json_size,
         "{"
         "\"timestamp\":\"%s\","
         "\"voltage_phase_1\":%.2f,"
@@ -107,17 +108,27 @@ void send_data(measurement_t* measurement) {
         measurement->negative_reactive_energy_total,
         measurement->positive_active_energy_total,
         measurement->negative_active_energy_total);
-        
- 	if (len < 0 || len >= sizeof(json)) {
-        ESP_LOGE(SENDER_TAG, "JSON string is too large for buffer");
+
+    if (len < 0 || len >= json_size) {
+        return -1;
+    }
+
+    return len;
+}
+
+void send_data(measurement_t* measurement) {
+    char json[BYTE_SIZE_JSON];
+
+    int json_len = format_measurement_as_json(measurement, json, sizeof(json));
+    if (json_len < 0) {
+        ESP_LOGE(SENDER_TAG, "Failed to format JSON string");
         return;
     }
-	
-	int msg_id = esp_mqtt_client_publish(client, "/topic/qos0", json, 0, 0, 0);
-			
-	if (msg_id != 0) {
-		ESP_LOGE(SENDER_TAG, "Publish failed, msg_id=%d", msg_id);
-	} else {
-		ESP_LOGI(SENDER_TAG, "Publish successful, msg_id=%d", msg_id);	
-	}
+
+    int msg_id = esp_mqtt_client_publish(client, CONFIG_MQTT_TOPIC, json, 0, 0, 0);
+    if (msg_id != 0) {
+        ESP_LOGE(SENDER_TAG, "Publish failed, msg_id=%d", msg_id);
+    } else {
+        ESP_LOGI(SENDER_TAG, "Publish successful, msg_id=%d", msg_id);	
+    }
 }

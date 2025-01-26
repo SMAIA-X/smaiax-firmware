@@ -35,5 +35,11 @@ config MQTT_PASSWORD
 	default "password"
 	help
 		The Password for connecting to the MQTT Broker.
+		
+config MQTT_TOPIC
+	string "MQTT Topic"
+	default "/default"
+	help
+		The Topic where the MQTT messages are sent to.
 
 endmenu
