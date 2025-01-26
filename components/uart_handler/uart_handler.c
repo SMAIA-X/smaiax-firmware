@@ -8,7 +8,6 @@
 #include "uart_handler.h"
 #include "driver/uart.h"
 #include "driver/gpio.h"
-#include "esp_log.h"
 
 void init_uart(void) {
     const uart_config_t uart_config = {
@@ -20,17 +19,13 @@ void init_uart(void) {
         .source_clk = 4,
     };
 
-    ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUF_SIZE * 2, 0, 0, NULL, 0));
+    ESP_ERROR_CHECK(uart_driver_install(UART_NUM, BUFFER_SIZE * 2, 0, 0, NULL, 0));
     ESP_ERROR_CHECK(uart_param_config(UART_NUM, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(UART_NUM, TXD_PIN, RXD_PIN, RTS, CTS));
 }
 
-int read_uart(uint8_t* buffer, size_t max_len, TickType_t timeout) {
-    int len = uart_read_bytes(UART_NUM, buffer, max_len, timeout);
-    
-    if (len > 0) {
-        ESP_LOGI(UART_TAG, "Read %d bytes from UART", len);
-    }
+int read_uart(uint8_t* buffer, size_t max_len, TickType_t tick_to_wait) {
+    int len = uart_read_bytes(UART_NUM, buffer, max_len, tick_to_wait);
     
     return len;
 }

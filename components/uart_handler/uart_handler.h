@@ -22,9 +22,9 @@
 
 #define UART_TAG "UART"
 
-static const int BUF_SIZE = 1024;
+static const int BUFFER_SIZE = 1024;
 
 void init_uart();
-int read_uart(uint8_t* buffer, size_t max_len, TickType_t timeout);
+int read_uart(uint8_t* buffer, size_t max_len, TickType_t tick_to_wait);
 
 #endif /* COMPONENTS_UART_HANDLER_UART_HANDLER_H_ */
