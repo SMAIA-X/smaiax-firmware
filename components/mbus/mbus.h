@@ -31,6 +31,6 @@ typedef struct {
  * @param frame Pointer to the frame structure to be filled.
  * @param buffer Pointer to the buffer containing the M-Bus frame data.
  */
-void parseBufferToFrame(frame_t* frame, const uint8_t* buffer);
+void parse_buffer_to_frame(frame_t* frame, const uint8_t* buffer);
 
 #endif /* COMPONENTS_MBUS_H_ */

@@ -7,5 +7,5 @@
 
 #include "../dlms/dlms.h"
 
-void initMqttClient();
-void sendData(measurement_t* measurement);
+void init_mqtt_client();
+void send_data(measurement_t* measurement);

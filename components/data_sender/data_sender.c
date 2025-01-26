@@ -59,7 +59,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     }
 }
 
-void initMqttClient() {
+void init_mqtt_client() {
 	esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.uri = CONFIG_MQTT_BROKER_URL,
         .credentials.username = CONFIG_MQTT_USERNAME,
@@ -71,7 +71,7 @@ void initMqttClient() {
     esp_mqtt_client_start(client);
 }
 
-void sendData(measurement_t* measurement) {
+void send_data(measurement_t* measurement) {
 	char json[512];
  	char timestamp[30];
     snprintf(timestamp, sizeof(timestamp), "%04d-%02d-%02dT%02d:%02d:%02d",
