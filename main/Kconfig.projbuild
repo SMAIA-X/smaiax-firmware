@@ -5,6 +5,12 @@ config SMART_METER_ID
 	default "69d784b5-e709-4f2a-906c-217cd7d29a3f"
 	help
 		The id of the smart meter that is used in the SMAIAX Backend
+		
+config TENANT_ID
+	string "Tenant Id"
+	default "4bc4ff06-b9da-4785-b854-6ab6f6b2160f"
+	help
+		The id of the tenant where the smart meter belongs to
 
 config SMART_METER_KEY
     string "Smart Meter Key"

@@ -83,6 +83,7 @@ int format_measurement_as_json(const measurement_t* measurement, char* json, siz
     int len = snprintf(json, json_size,
         "{"
         "\"smart_meter_id\":\"%s\","
+        "\"tenant_id\":\"%s\","
         "\"timestamp\":\"%s\","
         "\"voltage_phase_1\":%.2f,"
         "\"voltage_phase_2\":%.2f,"
@@ -98,6 +99,7 @@ int format_measurement_as_json(const measurement_t* measurement, char* json, siz
         "\"negative_active_energy_total\":%.2f"
         "}",
         CONFIG_SMART_METER_ID,
+        CONFIG_TENANT_ID,
         timestamp,
         measurement->voltage_phase_1,
         measurement->voltage_phase_2,

@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "freertos/portmacro.h"
+#include "freertos/FreeRTOS.h"
 
 #define TXD_PIN GPIO_NUM_10
 #define RXD_PIN GPIO_NUM_11
